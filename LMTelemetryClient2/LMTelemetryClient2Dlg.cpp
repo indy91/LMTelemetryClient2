@@ -28,6 +28,17 @@
 #define LTLM_LGC_DESCENT_ASCENT 5
 #define LTLM_LGC_SURFACE_ALIGN 6
 
+//DSPTAB masks
+
+#define DSKY_PRIO_DISP		00001
+#define DSKY_NO_DAP			00002
+#define DSKY_LR_VEL			00004
+#define DSKY_NO_ATT			00010
+#define DSKY_LR_ALT			00020
+#define DSKY_GIMBAL_LOCK	00040
+#define DSKY_TRACKER		00200
+#define DSKY_PROG_ALARM		00400
+
 LGCDownlinkFormatEntry::LGCDownlinkFormatEntry()
 {
 	for (int i = 0;i < 2;i++)
@@ -63,6 +74,7 @@ BEGIN_MESSAGE_MAP(CLMTelemetryClient2Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON3, &CLMTelemetryClient2Dlg::OnBnClickedButton3)
 	ON_BN_CLICKED(IDC_BUTTON4, &CLMTelemetryClient2Dlg::OnBnClickedButton4)
 	ON_BN_CLICKED(IDC_BUTTON5, &CLMTelemetryClient2Dlg::OnBnClickedButton5)
+	ON_BN_CLICKED(IDC_BUTTON6, &CLMTelemetryClient2Dlg::OnBnClickedButton6)
 	ON_BN_CLICKED(IDC_BUTTON7, &CLMTelemetryClient2Dlg::OnBnClickedButton7)
 	ON_BN_CLICKED(IDC_BUTTON9, &CLMTelemetryClient2Dlg::OnBnClickedButton9)
 	ON_BN_CLICKED(IDC_BUTTON10, &CLMTelemetryClient2Dlg::OnBnClickedButton10)
@@ -91,6 +103,7 @@ BOOL CLMTelemetryClient2Dlg::OnInitDialog()
 	rcs_form = NULL;
 	comm_ed_form = NULL;
 	lgc_form = NULL;
+	uplink_form = NULL;
 	WinsockInit();
 	for (int i = 0;i < 100;i++)
 	{
@@ -167,6 +180,11 @@ void CLMTelemetryClient2Dlg::OnCancel()
 	{
 		delete lgc_form;
 		lgc_form = NULL;
+	}
+	if (uplink_form)
+	{
+		delete uplink_form;
+		uplink_form = NULL;
 	}
 
 	DestroyWindow();
@@ -1748,7 +1766,7 @@ void CLMTelemetryClient2Dlg::parse_hbr(unsigned char data, int bytect)
 
 void CLMTelemetryClient2Dlg::parse_lgc()
 {
-	if (lgc_form == NULL) return;
+	if (lgc_form == NULL && uplink_form == NULL) return;
 
 	if (lgc_lock_type == 0) {
 		lgc_frame_addr = 1;   // Hold at one
@@ -1825,8 +1843,8 @@ void CLMTelemetryClient2Dlg::ProcessDSKY()
 	tmp[1] = get_dsky_char(bits);
 	tmp[2] = 0;
 	sprintf_s(msg2, tmp);
-	showValue(&lgc_form->DSKY_Prog);
-	//if (upl_form != NULL) { upl_form->textBox129->Text = tmp; upl_form->textBox129->Enabled = true; }
+	if (lgc_form != NULL) { showValue(&lgc_form->DSKY_Prog); }
+	if (uplink_form != NULL) { showValue(&uplink_form->DSKY_Prog); }
 	// VERB
 	bits = ((dsptab[9] & 01740) >> 5);
 	tmp[0] = get_dsky_char(bits);
@@ -1834,8 +1852,8 @@ void CLMTelemetryClient2Dlg::ProcessDSKY()
 	tmp[1] = get_dsky_char(bits);
 	tmp[2] = 0;
 	sprintf_s(msg2, tmp);
-	showValue(&lgc_form->DSKY_Verb);
-	//if (upl_form != NULL) { upl_form->textBox133->Text = tmp; upl_form->textBox133->Enabled = true; }
+	if (lgc_form != NULL) { showValue(&lgc_form->DSKY_Verb); }
+	if (uplink_form != NULL) { showValue(&uplink_form->DSKY_Verb); }
 	// NOUN
 	bits = ((dsptab[8] & 01740) >> 5);
 	tmp[0] = get_dsky_char(bits);
@@ -1843,8 +1861,8 @@ void CLMTelemetryClient2Dlg::ProcessDSKY()
 	tmp[1] = get_dsky_char(bits);
 	tmp[2] = 0;
 	sprintf_s(msg2, tmp);
-	showValue(&lgc_form->DSKY_Noun);
-	//if (upl_form != NULL) { upl_form->textBox134->Text = tmp; upl_form->textBox134->Enabled = true; }
+	if (lgc_form != NULL) { showValue(&lgc_form->DSKY_Noun); }
+	if (uplink_form != NULL) { showValue(&uplink_form->DSKY_Noun); }
 	// R1
 	tmp[0] = '_';
 	if (dsptab[5] & 02000) {
@@ -1865,8 +1883,8 @@ void CLMTelemetryClient2Dlg::ProcessDSKY()
 	tmp[5] = get_dsky_char(bits);
 	tmp[6] = 0;
 	sprintf_s(msg2, tmp);
-	showValue(&lgc_form->DSKY_R1);
-	//if (upl_form != NULL) { upl_form->textBox135->Text = tmp; upl_form->textBox135->Enabled = true; }
+	if (lgc_form != NULL) { showValue(&lgc_form->DSKY_R1); }
+	if (uplink_form != NULL) { showValue(&uplink_form->DSKY_R1); }
 	// R2
 	tmp[0] = '_';
 	if (dsptab[3] & 02000) {
@@ -1887,8 +1905,8 @@ void CLMTelemetryClient2Dlg::ProcessDSKY()
 	tmp[5] = get_dsky_char(bits);
 	tmp[6] = 0;
 	sprintf_s(msg2, tmp);
-	showValue(&lgc_form->DSKY_R2);
-	//if (upl_form != NULL) { upl_form->textBox136->Text = tmp; upl_form->textBox136->Enabled = true; }
+	if (lgc_form != NULL) { showValue(&lgc_form->DSKY_R2); }
+	if (uplink_form != NULL) { showValue(&uplink_form->DSKY_R2); }
 	// R3
 	tmp[0] = '_';
 	if (dsptab[0] & 02000) {
@@ -1909,31 +1927,43 @@ void CLMTelemetryClient2Dlg::ProcessDSKY()
 	tmp[5] = get_dsky_char(bits);
 	tmp[6] = 0;
 	sprintf_s(msg2, tmp);
-	showValue(&lgc_form->DSKY_R3);
-	//if (upl_form != NULL) { upl_form->textBox137->Text = tmp; upl_form->textBox137->Enabled = true; }
+	if (lgc_form != NULL) { showValue(&lgc_form->DSKY_R3); }
+	if (uplink_form != NULL) { showValue(&uplink_form->DSKY_R3); }
 	// WARNING LIGHTS
-	if (dsptab[11] & 00400) { lgc_form->DSKY_ProgAlarm.EnableWindow(true); }
-	else { lgc_form->DSKY_ProgAlarm.EnableWindow(false); }
-	if (dsptab[11] & 00200) { lgc_form->DSKY_Tracker.EnableWindow(true); }
-	else { lgc_form->DSKY_Tracker.EnableWindow(false); }
-	if (dsptab[11] & 00040) { lgc_form->DSKY_GimbalLock.EnableWindow(true); }
-	else { lgc_form->DSKY_GimbalLock.EnableWindow(false); }
-	if (dsptab[11] & 00020) { lgc_form->DSKY_Alt.EnableWindow(true); }
-	else { lgc_form->DSKY_Alt.EnableWindow(false); }
-	if (dsptab[11] & 00010) { lgc_form->DSKY_NoAtt.EnableWindow(true); }
-	else { lgc_form->DSKY_NoAtt.EnableWindow(false); }
-	if (dsptab[11] & 00004) { lgc_form->DSKY_Vel.EnableWindow(true); }
-	else { lgc_form->DSKY_Vel.EnableWindow(false); }
-	/*if (upl_form != NULL) {
-		if (dsptab[11] & 00400) { upl_form->label72->Enabled = TRUE; }
-		else { upl_form->label72->Enabled = FALSE; }
-		if (dsptab[11] & 00200) { upl_form->label75->Enabled = TRUE; }
-		else { upl_form->label75->Enabled = FALSE; }
-		if (dsptab[11] & 00040) { upl_form->label70->Enabled = TRUE; }
-		else { upl_form->label70->Enabled = FALSE; }
-		if (dsptab[11] & 00010) { upl_form->label69->Enabled = TRUE; }
-		else { upl_form->label69->Enabled = FALSE; }
-	}*/
+	if (lgc_form != NULL) {
+		if (dsptab[11] & DSKY_PROG_ALARM) { lgc_form->DSKY_ProgAlarm.EnableWindow(true); }
+		else { lgc_form->DSKY_ProgAlarm.EnableWindow(false); }
+		if (dsptab[11] & DSKY_TRACKER) { lgc_form->DSKY_Tracker.EnableWindow(true); }
+		else { lgc_form->DSKY_Tracker.EnableWindow(false); }
+		if (dsptab[11] & DSKY_GIMBAL_LOCK) { lgc_form->DSKY_GimbalLock.EnableWindow(true); }
+		else { lgc_form->DSKY_GimbalLock.EnableWindow(false); }
+		if (dsptab[11] & DSKY_LR_ALT) { lgc_form->DSKY_Alt.EnableWindow(true); }
+		else { lgc_form->DSKY_Alt.EnableWindow(false); }
+		if (dsptab[11] & DSKY_NO_ATT) { lgc_form->DSKY_NoAtt.EnableWindow(true); }
+		else { lgc_form->DSKY_NoAtt.EnableWindow(false); }
+		if (dsptab[11] & DSKY_LR_VEL) { lgc_form->DSKY_Vel.EnableWindow(true); }
+		else { lgc_form->DSKY_Vel.EnableWindow(false); }
+	}
+	if (uplink_form != NULL) {
+		if (dsptab[11] & DSKY_PROG_ALARM) { uplink_form->DSKY_ProgAlarm.EnableWindow(true); }
+		else { uplink_form->DSKY_ProgAlarm.EnableWindow(false); }
+		if (dsptab[11] & DSKY_TRACKER) { uplink_form->DSKY_Tracker.EnableWindow(true); }
+		else { uplink_form->DSKY_Tracker.EnableWindow(false); }
+		if (dsptab[11] & DSKY_GIMBAL_LOCK) { uplink_form->DSKY_GimbalLock.EnableWindow(true); }
+		else { uplink_form->DSKY_GimbalLock.EnableWindow(false); }
+		if (dsptab[11] & DSKY_LR_ALT) { uplink_form->DSKY_Alt.EnableWindow(true); }
+		else { uplink_form->DSKY_Alt.EnableWindow(false); }
+		if (dsptab[11] & DSKY_NO_ATT) { uplink_form->DSKY_NoAtt.EnableWindow(true); }
+		else { uplink_form->DSKY_NoAtt.EnableWindow(false); }
+		if (dsptab[11] & DSKY_LR_VEL) { uplink_form->DSKY_Vel.EnableWindow(true); }
+		else { uplink_form->DSKY_Vel.EnableWindow(false); }
+		uplink_form->DSKY_UplinkActivity.EnableWindow(false);
+		uplink_form->DSKY_Temp.EnableWindow(false);
+		uplink_form->DSKY_Standby.EnableWindow(false);
+		uplink_form->DSKY_KeyReleaseLight.EnableWindow(false);
+		uplink_form->DSKY_Restart.EnableWindow(false);
+		uplink_form->DSKY_OperatorError.EnableWindow(false);
+	}
 }
 
 // Translate bits into DSKY display character
@@ -2011,7 +2041,7 @@ void CLMTelemetryClient2Dlg::DoLGCLock()
 		lgc_lock_type = 0;
 		sprintf_s(msg2, "NO SYNC");
 	}
-	showValue(&lgc_form->lgcListID);
+	if (lgc_form) showValue(&lgc_form->lgcListID);
 }
 
 // Enable/disable stuff in CMCForm and setup for the given list
@@ -2455,7 +2485,7 @@ void CLMTelemetryClient2Dlg::ReadLGCDownlinkFormatFromFile()
 	for (int list = 0;list < 6;list++)
 	{
 		counter = 0;
-		sprintf_s(listname, "LGCDownlinkFormat%d.txt", list + 1);
+		sprintf_s(listname, "../LMTelemetryClient2/LGCDownlinkFormat%d.txt", list + 1);
 		myfile.open(listname);
 		if (!myfile.is_open()) continue;
 		while (getline(myfile, line))
@@ -3850,6 +3880,14 @@ void CLMTelemetryClient2Dlg::OnBnClickedButton5()
 	ces_form->ShowWindow(SW_SHOW);
 }
 
+void CLMTelemetryClient2Dlg::OnBnClickedButton6()
+{
+	if (uplink_form == NULL)
+	{
+		uplink_form = new UplinkForm(this);
+	}
+	uplink_form->ShowWindow(SW_SHOW);
+}
 
 void CLMTelemetryClient2Dlg::OnBnClickedButton7()
 {
@@ -3918,4 +3956,87 @@ void CLMTelemetryClient2Dlg::OnBnClickedButton15()
 		lgc_form = new LGCForm(this);
 	}
 	lgc_form->ShowWindow(SW_SHOW);
+}
+
+void CLMTelemetryClient2Dlg::send_agc_key(char key)
+{
+	int bytesXmit = SOCKET_ERROR;
+	unsigned char cmdbuf[4];
+	cmdbuf[0] = 031; // VA,SA
+	switch (key) {
+	case 'V': // 11-000-101 11-010-001										
+		cmdbuf[1] = 0305;
+		cmdbuf[2] = 0321;
+		break;
+	case 'N': // 11-111-100 00-011-111
+		cmdbuf[1] = 0374;
+		cmdbuf[2] = 0037;
+		break;
+	case 'E': // 11-110-000 01-111-100
+		cmdbuf[1] = 0360;
+		cmdbuf[2] = 0174;
+		break;
+	case 'R': // 11-001-001 10-110-010
+		cmdbuf[1] = 0311;
+		cmdbuf[2] = 0262;
+		break;
+	case 'C': // 11-111-000 00-111-110
+		cmdbuf[1] = 0370;
+		cmdbuf[2] = 0076;
+		break;
+	case 'K': // 11-100-100 11-011-001
+		cmdbuf[1] = 0344;
+		cmdbuf[2] = 0331;
+		break;
+	case '+': // 11-101-000 10-111-010
+		cmdbuf[1] = 0350;
+		cmdbuf[2] = 0372;
+		break;
+	case '-': // 11-101-100 10-011-011
+		cmdbuf[1] = 0354;
+		cmdbuf[2] = 0233;
+		break;
+	case '1': // 10-000-111 11-000-001
+		cmdbuf[1] = 0207;
+		cmdbuf[2] = 0301;
+		break;
+	case '2': // 10-001-011 10-100-010
+		cmdbuf[1] = 0213;
+		cmdbuf[2] = 0242;
+		break;
+	case '3': // 10-001-111 10-000-011
+		cmdbuf[1] = 0217;
+		cmdbuf[2] = 0203;
+		break;
+	case '4': // 10-010-011 01-100-100
+		cmdbuf[1] = 0223;
+		cmdbuf[2] = 0144;
+		break;
+	case '5': // 10-010-111 01-000-101
+		cmdbuf[1] = 0227;
+		cmdbuf[2] = 0105;
+		break;
+	case '6': // 10-011-011 00-100-110
+		cmdbuf[1] = 0233;
+		cmdbuf[2] = 0046;
+		break;
+	case '7': // 10-011-111 00-000-111
+		cmdbuf[1] = 0237;
+		cmdbuf[2] = 0007;
+		break;
+	case '8': // 10-100-010 11-101-000
+		cmdbuf[1] = 0242;
+		cmdbuf[2] = 0350;
+		break;
+	case '9': // 10-100-110 11-001-001
+		cmdbuf[1] = 0246;
+		cmdbuf[2] = 0311;
+		break;
+	case '0': // 11-000-001 11-110-000
+		cmdbuf[1] = 0301;
+		cmdbuf[2] = 0360;
+		break;
+	}
+	bytesXmit = send(m_socket, (char *)cmdbuf, 3, 0);
+
 }

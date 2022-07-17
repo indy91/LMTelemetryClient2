@@ -63,6 +63,9 @@
     <ClInclude Include="LGCForm.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="UplinkForm.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LMTelemetryClient2.cpp">
@@ -105,6 +108,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="LGCForm.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="UplinkForm.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

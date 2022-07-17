@@ -199,6 +199,7 @@
     <ClInclude Include="SCIForm.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="UplinkForm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="APSForm.cpp" />
@@ -220,6 +221,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="UplinkForm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LMTelemetryClient2.rc" />

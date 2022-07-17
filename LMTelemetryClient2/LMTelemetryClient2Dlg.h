@@ -15,6 +15,7 @@
 #include "RCSForm.h"
 #include "COMM_ED_Form.h"
 #include "LGCForm.h"
+#include "UplinkForm.h"
 
 struct LGCDownlinkFormatEntry
 {
@@ -53,6 +54,8 @@ public:
 		CommThread();
 		return 0;
 	}
+
+	void send_agc_key(char key);
 protected:
 	void ConnectToHost();
 	void WinsockInit();
@@ -135,11 +138,13 @@ protected:
 	RCSForm *rcs_form;
 	COMM_ED_Form *comm_ed_form;
 	LGCForm *lgc_form;
+	UplinkForm *uplink_form;
 public:
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton3();
 	afx_msg void OnBnClickedButton4();
 	afx_msg void OnBnClickedButton5();
+	afx_msg void OnBnClickedButton6();
 	afx_msg void OnBnClickedButton7();
 	afx_msg void OnBnClickedButton9();
 	afx_msg void OnBnClickedButton10();
