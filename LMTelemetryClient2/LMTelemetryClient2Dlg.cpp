@@ -3487,6 +3487,10 @@ void CLMTelemetryClient2Dlg::display(unsigned char data, int channel, int type, 
 					showEvent(&ces_form->s10E234, data, 010);//R TRM FAIL (GH1330X)
 					showEvent(&ces_form->s10E235, data, 020);//AGS SEL (GH1621X)
 				}
+				if (uplink_form)
+				{
+					showEvent(&uplink_form->s10E235, data, 020);//AGS SEL (GH1621X)
+				}
 				break;
 			case 24: //10E24
 				if (aps_form)
@@ -3575,6 +3579,10 @@ void CLMTelemetryClient2Dlg::display(unsigned char data, int channel, int type, 
 					showEvent(&ces_form->s10E412, data, 02); //DPS ARM (GH1348X)
 					showEvent(&ces_form->s10E413, data, 04); //WIDE DBND (GH1603X)
 					showEvent(&ces_form->s10E414, data, 010); //X TRANS OVERRIDE (GH1893X)
+				}
+				if (uplink_form)
+				{
+					showEvent(&uplink_form->s10E411, data, 01); //APS ARM (GH1230X)
 				}
 				break;
 			case 42: //10E42
@@ -3956,6 +3964,53 @@ void CLMTelemetryClient2Dlg::OnBnClickedButton15()
 		lgc_form = new LGCForm(this);
 	}
 	lgc_form->ShowWindow(SW_SHOW);
+}
+
+void CLMTelemetryClient2Dlg::send_aeaa_cmd(bool arm, bool set)
+{
+	//arm: true = APS arming, false = AGS guidance
+	//set: true = set relays, false = reset relays
+
+	int bytesXmit = SOCKET_ERROR;
+	char cmdbuf[8];
+	cmdbuf[0] = cmdbuf[2] = cmdbuf[4] = cmdbuf[6] = 034; // VA,SA for RTC A
+
+	if (arm)
+	{
+		if (set)
+		{
+			cmdbuf[1] = 0;
+			cmdbuf[3] = 2;
+			cmdbuf[5] = 4;
+			cmdbuf[7] = 6;
+		}
+		else
+		{
+			cmdbuf[1] = 1;
+			cmdbuf[3] = 3;
+			cmdbuf[5] = 5;
+			cmdbuf[7] = 7;
+		}
+	}
+	else
+	{
+		if (set)
+		{
+			cmdbuf[1] = 8;
+			cmdbuf[3] = 10;
+			cmdbuf[5] = 12;
+			cmdbuf[7] = 14;
+		}
+		else
+		{
+			cmdbuf[1] = 9;
+			cmdbuf[3] = 11;
+			cmdbuf[5] = 13;
+			cmdbuf[7] = 15;
+		}
+	}
+
+	bytesXmit = send(m_socket, cmdbuf, 8, 0);
 }
 
 void CLMTelemetryClient2Dlg::send_agc_key(char key)

@@ -55,4 +55,10 @@ public:
 	CStatic DSKY_KeyReleaseLight;
 	CStatic DSKY_Restart;
 	CStatic DSKY_OperatorError;
+	CEdit s10E411;
+	afx_msg void OnBnClickedButton9();
+	afx_msg void OnBnClickedButton10();
+	afx_msg void OnBnClickedButton11();
+	afx_msg void OnBnClickedButton12();
+	CEdit s10E235;
 };

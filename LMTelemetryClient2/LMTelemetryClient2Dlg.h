@@ -56,6 +56,7 @@ public:
 	}
 
 	void send_agc_key(char key);
+	void send_aeaa_cmd(bool arm, bool set);
 protected:
 	void ConnectToHost();
 	void WinsockInit();

@@ -45,6 +45,8 @@ void UplinkForm::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC13, DSKY_KeyReleaseLight);
 	DDX_Control(pDX, IDC_STATIC17, DSKY_Restart);
 	DDX_Control(pDX, IDC_STATIC14, DSKY_OperatorError);
+	DDX_Control(pDX, IDC_EDIT5, s10E411);
+	DDX_Control(pDX, IDC_EDIT6, s10E235);
 }
 
 
@@ -65,6 +67,10 @@ BEGIN_MESSAGE_MAP(UplinkForm, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON8, &UplinkForm::OnBnClickedButtonDSKY_C)
 	ON_BN_CLICKED(IDC_BUTTON14, &UplinkForm::OnBnClickedButtonDSKY_K)
 	ON_BN_CLICKED(IDC_BUTTON17, &UplinkForm::OnBnClickedButtonDSKY_E)
+	ON_BN_CLICKED(IDC_BUTTON9, &UplinkForm::OnBnClickedButton9)
+	ON_BN_CLICKED(IDC_BUTTON10, &UplinkForm::OnBnClickedButton10)
+	ON_BN_CLICKED(IDC_BUTTON11, &UplinkForm::OnBnClickedButton11)
+	ON_BN_CLICKED(IDC_BUTTON12, &UplinkForm::OnBnClickedButton12)
 END_MESSAGE_MAP()
 
 
@@ -148,4 +154,27 @@ void UplinkForm::OnBnClickedButtonDSKY_K()
 void UplinkForm::OnBnClickedButtonDSKY_E()
 {
 	parent->send_agc_key('E');
+}
+
+void UplinkForm::OnBnClickedButton9()
+{
+	parent->send_aeaa_cmd(true, true);
+}
+
+
+void UplinkForm::OnBnClickedButton10()
+{
+	parent->send_aeaa_cmd(true, false);
+}
+
+
+void UplinkForm::OnBnClickedButton11()
+{
+	parent->send_aeaa_cmd(false, true);
+}
+
+
+void UplinkForm::OnBnClickedButton12()
+{
+	parent->send_aeaa_cmd(false, false);
 }
