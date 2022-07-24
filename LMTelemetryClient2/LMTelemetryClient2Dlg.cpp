@@ -2091,6 +2091,8 @@ double CLMTelemetryClient2Dlg::ScaleAGCDouble(unsigned int w0, unsigned int w1, 
 
 void CLMTelemetryClient2Dlg::LGCWriteToForm(int out)
 {
+	if (lgc_form == NULL) return;
+
 	switch (out)
 	{
 	case 1:

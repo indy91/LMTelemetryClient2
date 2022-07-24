@@ -61,4 +61,6 @@ public:
 	afx_msg void OnBnClickedButton11();
 	afx_msg void OnBnClickedButton12();
 	CEdit s10E235;
+	afx_msg void OnBnClickedButtonDSKY_Plus();
+	afx_msg void OnBnClickedButtonDSKY_Minus();
 };

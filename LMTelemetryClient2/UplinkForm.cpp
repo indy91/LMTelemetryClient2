@@ -71,6 +71,8 @@ BEGIN_MESSAGE_MAP(UplinkForm, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON10, &UplinkForm::OnBnClickedButton10)
 	ON_BN_CLICKED(IDC_BUTTON11, &UplinkForm::OnBnClickedButton11)
 	ON_BN_CLICKED(IDC_BUTTON12, &UplinkForm::OnBnClickedButton12)
+	ON_BN_CLICKED(IDC_BUTTON26, &UplinkForm::OnBnClickedButtonDSKY_Plus)
+	ON_BN_CLICKED(IDC_BUTTON28, &UplinkForm::OnBnClickedButtonDSKY_Minus)
 END_MESSAGE_MAP()
 
 
@@ -154,6 +156,16 @@ void UplinkForm::OnBnClickedButtonDSKY_K()
 void UplinkForm::OnBnClickedButtonDSKY_E()
 {
 	parent->send_agc_key('E');
+}
+
+void UplinkForm::OnBnClickedButtonDSKY_Plus()
+{
+	parent->send_agc_key('+');
+}
+
+void UplinkForm::OnBnClickedButtonDSKY_Minus()
+{
+	parent->send_agc_key('-');
 }
 
 void UplinkForm::OnBnClickedButton9()
