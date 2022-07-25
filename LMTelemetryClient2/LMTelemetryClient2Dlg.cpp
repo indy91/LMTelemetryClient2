@@ -4047,7 +4047,7 @@ void CLMTelemetryClient2Dlg::send_agc_key(char key)
 		break;
 	case '+': // 11-101-000 10-111-010
 		cmdbuf[1] = 0350;
-		cmdbuf[2] = 0372;
+		cmdbuf[2] = 0272;
 		break;
 	case '-': // 11-101-100 10-011-011
 		cmdbuf[1] = 0354;
