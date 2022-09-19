@@ -3702,8 +3702,8 @@ double CLMTelemetryClient2Dlg::unscale_data(unsigned char data, double low, doub
 		return high;
 	}
 
-	double step = ((high - low) / 256.0);
-	return (data * step) + low;
+	double step = ((high - low) / 253.0);
+	return ((data - 1) * step) + low;
 }
 
 void CLMTelemetryClient2Dlg::showVolts(CEdit *tb, unsigned char data, double low, double high)
