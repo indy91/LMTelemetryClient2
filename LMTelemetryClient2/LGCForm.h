@@ -1,5 +1,6 @@
 #pragma once
 
+class CLMTelemetryClient2Dlg;
 
 // LGCForm-Dialog
 
@@ -18,6 +19,8 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV-Unterstützung
+
+	CLMTelemetryClient2Dlg *parent;
 
 	DECLARE_MESSAGE_MAP()
 public:
@@ -138,4 +141,8 @@ public:
 	CEdit Channel13_14;
 	CEdit Channel30_31;
 	CEdit Channel32_33;
+	CEdit EMEMPassBox;
+	CEdit EMEMBankBox;
+	CEdit EMEMIndexBox;
+	afx_msg void OnBnClickedButtonEMEMStore();
 };

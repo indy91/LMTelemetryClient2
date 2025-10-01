@@ -5,7 +5,7 @@
 #include "LMTelemetryClient2.h"
 #include "LGCForm.h"
 #include "afxdialogex.h"
-
+#include "LMTelemetryClient2Dlg.h"
 
 // LGCForm-Dialog
 
@@ -15,6 +15,8 @@ LGCForm::LGCForm(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DIALOG11, pParent)
 {
 	Create(IDD_DIALOG11, pParent);
+
+	parent = (CLMTelemetryClient2Dlg*)pParent;
 }
 
 LGCForm::~LGCForm()
@@ -141,11 +143,21 @@ void LGCForm::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT171, Channel13_14);
 	DDX_Control(pDX, IDC_EDIT172, Channel30_31);
 	DDX_Control(pDX, IDC_EDIT173, Channel32_33);
+	DDX_Control(pDX, IDC_EDIT175, EMEMPassBox);
+	DDX_Control(pDX, IDC_EDIT15, EMEMBankBox);
+	DDX_Control(pDX, IDC_EDIT174, EMEMIndexBox);
 }
 
 
 BEGIN_MESSAGE_MAP(LGCForm, CDialogEx)
+	ON_BN_CLICKED(IDC_BUTTON29, &LGCForm::OnBnClickedButtonEMEMStore)
 END_MESSAGE_MAP()
 
 
 // LGCForm-Meldungshandler
+
+
+void LGCForm::OnBnClickedButtonEMEMStore()
+{
+	parent->SaveErasableDump();
+}

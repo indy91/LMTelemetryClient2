@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Von Microsoft Visual C++ generierte Includedatei.
-// Verwendet durch LMTelemetryClient2.rc
+// Microsoft Visual C++ generated include file.
+// Used by LMTelemetryClient2.rc
 //
 #define IDD_LMTELEMETRYCLIENT2_DIALOG   102
 #define IDR_MAINFRAME                   128
@@ -232,9 +232,12 @@
 #define IDC_EDIT168                     1112
 #define IDC_EDIT169                     1113
 #define IDC_EDIT170                     1114
+#define IDC_EDIT174                     1115
 #define IDC_EDIT171                     1116
 #define IDC_EDIT172                     1117
 #define IDC_EDIT173                     1118
+#define IDC_EDIT175                     1119
+#define IDC_BUTTON29                    1120
 
 // Next default values for new objects
 // 
@@ -242,7 +245,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1060
+#define _APS_NEXT_CONTROL_VALUE         1121
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
