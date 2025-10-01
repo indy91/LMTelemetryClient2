@@ -21,12 +21,15 @@
 #define LTLM_DS		3
 #define LTLM_E		4
 
-#define LTLM_LGC_COAST_ALIGN 1
-#define LTLM_LGC_AGS_INIT_UPDATE 2
-#define LTLM_LGC_RENDEZVOUS_PRETHRUST 3
-#define LTLM_LGC_ORBITAL_MANEUVERS 4
-#define LTLM_LGC_DESCENT_ASCENT 5
-#define LTLM_LGC_SURFACE_ALIGN 6
+// LGC downlists
+#define LTLM_LGC_NONE -1
+#define LTLM_LGC_COAST_ALIGN 0
+#define LTLM_LGC_AGS_INIT_UPDATE 1
+#define LTLM_LGC_RENDEZVOUS_PRETHRUST 2
+#define LTLM_LGC_ORBITAL_MANEUVERS 3
+#define LTLM_LGC_DESCENT_ASCENT 4
+#define LTLM_LGC_SURFACE_ALIGN 5
+#define LTLM_LGC_ERASABLE_MEMORY_DUMP 076001 //077777 minus 01776
 
 //DSPTAB masks
 
@@ -105,10 +108,21 @@ BOOL CLMTelemetryClient2Dlg::OnInitDialog()
 	lgc_form = NULL;
 	uplink_form = NULL;
 	WinsockInit();
+	lgc_word_order_code = false;
 	for (int i = 0;i < 100;i++)
 	{
 		lgc_raw_data[i][0] = 0;
 		lgc_raw_data[i][1] = 0;
+	}
+	lgc_emem_pass = 0;
+	lgc_emem_bank = 0;
+	lgc_emem_idx = 0;
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 256; j++)
+		{
+			lgc_emem_data[i][j] = 0;
+		}
 	}
 
 	ReadLGCDownlinkFormatFromFile();
@@ -300,9 +314,10 @@ void CLMTelemetryClient2Dlg::CommThread()
 	int byte_offset = 0;
 	int bytect = 0;
 
-	lock_type = 0;   lgc_lock_type = 0;
+	lock_type = 0;   lgc_lock_type = LTLM_LGC_NONE;
 	frame_addr = 0;	 lgc_frame_addr = 0;
 	framect = 0;     lgc_framect = 0;
+	lgc_word_order_code = false;
 	while (!die) {
 		bytesRecv = recv(m_socket, (char *)recvbuf, 1024, 0);
 		if (bytesRecv == SOCKET_ERROR) {
@@ -1736,6 +1751,7 @@ void CLMTelemetryClient2Dlg::parse_hbr(unsigned char data, int bytect)
 		}
 		break;
 	case 120: //51DS1a: GG0001
+		lgc_word_order_code = ((data & 0200) != 0);
 		lgc_word[0] = data & 0177;
 		lgc_word[0] <<= 8;
 		break;
@@ -1768,34 +1784,60 @@ void CLMTelemetryClient2Dlg::parse_lgc()
 {
 	if (lgc_form == NULL && uplink_form == NULL) return;
 
-	if (lgc_lock_type == 0) {
-		lgc_frame_addr = 1;   // Hold at one
+	//New list?
+	if (lgc_word_order_code == false && lgc_word[1] == 077340)
+	{
+		//Yes
+		//Reset word counter
+		lgc_frame_addr = 0;
+		//Get downlist
+		lgc_lock_type = 077777 - lgc_word[0];
 		DoLGCLock();
+	}
+	//No lock?
+	if (lgc_lock_type == LTLM_LGC_NONE)
+	{
+		end_lgc();
 		return;
 	}
-	else {
-		lgc_frame_addr++;
-		if (lgc_frame_addr > 100) {
-			lgc_frame_addr = 1; // LOOP
+
+	//Handle data
+	if (lgc_lock_type == LTLM_LGC_ERASABLE_MEMORY_DUMP)
+	{
+		//Erasable memory dump
+		ProcessEMEMDump();
+	}
+	else
+	{
+		//Normal downlist
+		//Store raw data
+		lgc_raw_data[lgc_frame_addr][0] = lgc_word[0];
+		lgc_raw_data[lgc_frame_addr][1] = lgc_word[1];
+
+		ProcessLGC();
+	}
+	//Increment counter
+	lgc_frame_addr++;
+	//End of list?
+	if (lgc_lock_type == LTLM_LGC_ERASABLE_MEMORY_DUMP)
+	{
+		if (lgc_frame_addr >= 130)
+		{
+			lgc_lock_type = LTLM_LGC_NONE;
 		}
 	}
-
-	// ACTUAL DATA PARSING HERE
-	if (lgc_frame_addr == 1)
+	else
 	{
-		DoLGCLock();
+		if (lgc_frame_addr >= 100)
+		{
+			lgc_lock_type = LTLM_LGC_NONE;
+		}
 	}
-	if (lgc_lock_type == 0) return;
-	//Store raw data
-	lgc_raw_data[lgc_frame_addr - 1][0] = lgc_word[0];
-	lgc_raw_data[lgc_frame_addr - 1][1] = lgc_word[1];
-
-	ProcessLGC();
 }
 
 void CLMTelemetryClient2Dlg::ProcessLGC()
 {
-	LGCDownlinkFormatEntry format = LGCDownlinkFormat[lgc_lock_type - 1][lgc_frame_addr - 1];
+	LGCDownlinkFormatEntry format = LGCDownlinkFormat[lgc_lock_type][lgc_frame_addr];
 	for (int i = 0;i < 2;i++)
 	{
 		switch (format.type[i])
@@ -1829,6 +1871,32 @@ void CLMTelemetryClient2Dlg::ProcessLGC()
 			break;
 		}
 	}
+}
+
+void CLMTelemetryClient2Dlg::ProcessEMEMDump()
+{
+	if (lgc_frame_addr == 0) return;
+
+	if (lgc_frame_addr == 1)
+	{
+		lgc_emem_pass = (lgc_word[0] >> 11) & 0x3;
+		lgc_emem_bank = (lgc_word[0] >> 8) & 0x7;
+	}
+	else
+	{
+		lgc_emem_idx = (lgc_frame_addr - 2) * 2;
+		lgc_emem_data[lgc_emem_bank][lgc_emem_idx] = lgc_word[0];
+		lgc_emem_data[lgc_emem_bank][lgc_emem_idx + 1] = lgc_word[1];
+	}
+
+	if (lgc_form == NULL) return;
+
+	sprintf_s(msg2, "%d", lgc_emem_pass + 1);
+	showValue(&lgc_form->EMEMPassBox);
+	sprintf_s(msg2, "%d", lgc_emem_bank + 1);
+	showValue(&lgc_form->EMEMBankBox);
+	sprintf_s(msg2, "%d", lgc_emem_idx + 1);
+	showValue(&lgc_form->EMEMIndexBox);
 }
 
 void CLMTelemetryClient2Dlg::ProcessDSKY()
@@ -1999,47 +2067,38 @@ char CLMTelemetryClient2Dlg::get_dsky_char(unsigned int bits)
 
 void CLMTelemetryClient2Dlg::DoLGCLock()
 {
-	if (lgc_word[1] == 077340) { // Check for SYNC 1
-		switch (lgc_word[0]) {   // Switch other halfword
-		case 077777:  // COAST AND ALIGN 
-			lgc_lock_type = LTLM_LGC_COAST_ALIGN;
-			sprintf_s(msg2, "COAST/ALIGN");
-			setup_lgc_list();
-			break;
-		case 077776:  // AGS INITIALIZATION/UPDATE
-			lgc_lock_type = 2;
-			sprintf_s(msg2, "AGS INIT/UPDATE");
-			setup_lgc_list();
-			break;
-		case 077775:  // RDZ AND PRETHRUST
-			lgc_lock_type = 3;
-			sprintf_s(msg2, "RDZ/PRETHRUST");
-			setup_lgc_list();
-			break;
-		case 077774:  // ORBITAL MANEUVERS LIST
-			lgc_lock_type = 4;
-			sprintf_s(msg2, "ORBITAL MANEUVERS");
-			setup_lgc_list();
-			break;
-		case 077773:  // DESCENT/ASCENT
-			lgc_lock_type = 5;
-			sprintf_s(msg2, "DESCENT/ASCENT");
-			setup_lgc_list();
-			break;
-		case 077772:  // SURFACE ALIGN
-			lgc_lock_type = 6;
-			sprintf_s(msg2, "SURFACE ALIGN");
-			setup_lgc_list();
-			break;
-		default:
-			lgc_lock_type = 0;
-			sprintf_s(msg2, "NO SYNC");
-			break;
-		}
-	}
-	else {
-		lgc_lock_type = 0;
+	switch (lgc_lock_type) {
+	case LTLM_LGC_COAST_ALIGN:
+		sprintf_s(msg2, "COAST/ALIGN");
+		setup_lgc_list();
+		break;
+	case LTLM_LGC_AGS_INIT_UPDATE:
+		sprintf_s(msg2, "AGS INIT/UPDATE");
+		setup_lgc_list();
+		break;
+	case LTLM_LGC_RENDEZVOUS_PRETHRUST:
+		sprintf_s(msg2, "RDZ/PRETHRUST");
+		setup_lgc_list();
+		break;
+	case LTLM_LGC_ORBITAL_MANEUVERS:
+		sprintf_s(msg2, "ORBITAL MANEUVERS");
+		setup_lgc_list();
+		break;
+	case LTLM_LGC_DESCENT_ASCENT:
+		sprintf_s(msg2, "DESCENT/ASCENT");
+		setup_lgc_list();
+		break;
+	case LTLM_LGC_SURFACE_ALIGN:
+		sprintf_s(msg2, "SURFACE ALIGN");
+		setup_lgc_list();
+		break;
+	case LTLM_LGC_ERASABLE_MEMORY_DUMP:
+		sprintf_s(msg2, "EMEM DUMP");
+		break;
+	default:
+		lgc_lock_type = LTLM_LGC_NONE;
 		sprintf_s(msg2, "NO SYNC");
+		break;
 	}
 	if (lgc_form) showValue(&lgc_form->lgcListID);
 }
@@ -2049,7 +2108,7 @@ void CLMTelemetryClient2Dlg::setup_lgc_list()
 {
 	if (lgc_form == NULL) { return; } // Safeguard
 	bool onoff;
-	if (lgc_lock_type != 0) { onoff = TRUE; }
+	if (lgc_lock_type != LTLM_LGC_NONE) { onoff = TRUE; }
 	else { onoff = FALSE; }
 }
 
@@ -2087,6 +2146,28 @@ double CLMTelemetryClient2Dlg::ScaleAGCDouble(unsigned int w0, unsigned int w1, 
 		val2 = w1;
 	}
 	return scale * (pow(2, -14)*val1 + pow(2, -28)*val2);
+}
+
+void CLMTelemetryClient2Dlg::SaveErasableDump()
+{
+	std::ofstream file;
+
+	file.open("LGCErasableMemoryDump.txt");
+
+	if (file.is_open() == false) return;
+
+	char Buff[64];
+	int i, j;
+
+	for (i = 0; i < 8; i++)
+	{
+		for (j = 0; j < 256; j++)
+		{
+			sprintf_s(Buff, "EMEM%04o %05o", i * 256 + j, lgc_emem_data[i][j]);
+			file << Buff << std::endl;
+		}
+	}
+	file.close();
 }
 
 void CLMTelemetryClient2Dlg::LGCWriteToForm(int out)
@@ -2508,6 +2589,14 @@ void CLMTelemetryClient2Dlg::ReadLGCDownlinkFormatFromFile()
 		}
 		myfile.close();
 	}
+}
+
+void CLMTelemetryClient2Dlg::end_lgc()
+{
+	lgc_lock_type = LTLM_LGC_NONE;
+	if (lgc_form == NULL) return;
+	sprintf_s(msg2, "NO SYNC");
+	showValue(&lgc_form->lgcListID);
 }
 
 void CLMTelemetryClient2Dlg::display(unsigned char data, int channel, int type, int ccode)

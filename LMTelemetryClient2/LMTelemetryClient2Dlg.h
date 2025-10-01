@@ -57,6 +57,7 @@ public:
 
 	void send_agc_key(char key);
 	void send_aeaa_cmd(bool arm, bool set);
+	void SaveErasableDump();
 protected:
 	void ConnectToHost();
 	void WinsockInit();
@@ -68,10 +69,12 @@ protected:
 	void setup_lgc_list();
 	void DoLGCLock();
 	void ProcessLGC();
+	void ProcessEMEMDump();
 	void LGCWriteToForm(int out);
 	void ReadLGCDownlinkFormatFromFile();
 	void ProcessDSKY();
 	char get_dsky_char(unsigned int bits);
+	void end_lgc();
 	void end_lbr();
 	void end_hbr();
 
@@ -111,6 +114,7 @@ protected:
 	int frame_addr;
 
 	// LGC datastream parser
+	bool lgc_word_order_code;
 	unsigned int lgc_word[2];
 	unsigned int lgc_upbuff__nogc[20];
 	unsigned int lgc_compnumb;
@@ -118,10 +122,14 @@ protected:
 	unsigned int lgc_upverb;
 	unsigned int lgc_upcount;
 	unsigned int lgc_upindex;
-	int lgc_lock_type;
+	int lgc_lock_type; //0 = coast/align, 1 = AGS initialization, 2 = etc.
 	int lgc_framect;
 	int lgc_frame_addr;
 	unsigned lgc_raw_data[100][2];
+	unsigned lgc_emem_pass;
+	unsigned lgc_emem_bank;
+	unsigned lgc_emem_idx;
+	unsigned lgc_emem_data[8][256];
 	LGCDownlinkFormatEntry LGCDownlinkFormat[6][100];
 	unsigned dsptab[12];
 
