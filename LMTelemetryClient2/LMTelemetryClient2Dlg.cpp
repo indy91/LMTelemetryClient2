@@ -996,7 +996,8 @@ void CLMTelemetryClient2Dlg::end_lbr()
 
 void CLMTelemetryClient2Dlg::end_hbr()
 {
-
+	lock_type = 0;
+	lgc_lock_type = LTLM_LGC_NONE;
 }
 
 void CLMTelemetryClient2Dlg::parse_hbr(unsigned char data, int bytect)
@@ -2704,7 +2705,7 @@ void CLMTelemetryClient2Dlg::display(unsigned char data, int channel, int type, 
 			case 17: //10A17: CO2 PART PRESS
 				if (ecs_form)
 				{
-					showMMHG(&ecs_form->s10A17, data, 0.0, 30.0);
+					showCO2PartPress(&ecs_form->s10A17, data);
 				}
 				break;
 			case 18: //10A18: DPS FUEL PRESS
@@ -3881,9 +3882,11 @@ void CLMTelemetryClient2Dlg::showPSIA(CEdit *tb, unsigned char data, double low,
 	showValue(tb);
 }
 
-void CLMTelemetryClient2Dlg::showMMHG(CEdit *tb, unsigned char data, double low, double high)
+void CLMTelemetryClient2Dlg::showCO2PartPress(CEdit *tb, unsigned char data)
 {
-	double value = unscale_data(data, low, high);
+	double volts = unscale_data(data, 0.0, 5.0);
+	//Calibration curve fit for 5.0 PSIA
+	double value = 0.0 + 0.399027960336342 * volts + 1.120194407932732 * volts * volts;
 	sprintf_s(msg2, "%04.2lf MMHG", value);
 	msg = msg2;
 	tb->SetWindowText(msg);

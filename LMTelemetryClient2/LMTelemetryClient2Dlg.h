@@ -86,7 +86,7 @@ protected:
 	void showAmps(CEdit *tb, unsigned char data, double low, double high);
 	void showTempF(CEdit *tb, unsigned char data, double low, double high);
 	void showPSIA(CEdit *tb, unsigned char data, double low, double high);
-	void showMMHG(CEdit *tb, unsigned char data, double low, double high);
+	void showCO2PartPress(CEdit *tb, unsigned char data);
 	void showCPS(CEdit *tb, unsigned char data, double low, double high);
 	void showKC(CEdit *tb, unsigned char data, double low, double high);
 	void showWatts(CEdit *tb, unsigned char data, double low, double high);
